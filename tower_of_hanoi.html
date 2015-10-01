@@ -1,0 +1,271 @@
+<head>
+	<title>Tower of Hanoi by Carl Fredrik Abelson</title>
+	<style>
+		body {
+			background-color: ghostwhite;
+			font-family: Arial;
+			font-size: 9pt;
+			margin: 0px;
+			padding: 0px;
+		}
+		h1 {
+			font-family: Arial;
+			font-size: 24pt;
+		}
+		small {
+			font-family: Arial;
+			font-size: 8pt;
+			font-style: italic;
+		}
+		button {
+			width: 80px;
+			height: 23px;
+			font-size: 8pt;
+		}
+		button.small {
+			width: 40px;
+			height: 23px;
+			margin-left: 5px;
+		}
+		input.small {
+			width: 40px;
+		}
+		#header {
+			position: absolute;
+			left: 20px;
+			top: 10px;
+		}
+		.tower {
+			position: absolute;
+			top: 125px;
+			width: 250px;
+			height: 250px;
+		}
+		#tower0 {
+			left: 20px;
+		}
+		#tower1 {
+			left: 290px;
+		}
+		#tower2 {
+			left: 560px;
+		}
+		.bottomline {
+			position: absolute;
+			left: 0px;
+			bottom: 0px;
+			width: 250px;
+			height: 5px;
+			background-color: black;
+			font-size: 1px;     /* bugfix for Internet Explorer, div elements */
+			line-height: 0;     /* have a minimum height of 20px              */
+		}
+		.middleline {
+			position: absolute;
+			left: 122.5px;
+			bottom: 0px;
+			width: 5px;
+			height: 250px;
+			background-color: black;
+		}
+		#footer {
+			position: absolute;
+			left: 20px;
+			top: 400px;
+		}
+	</style>
+
+	<script>
+		var number_discs = 7;
+		var delay_between_moves = 500;
+		var stop_solving = false;
+
+		var tower = new Array();
+		var discs_on_tower = new Array();
+		var disc_color = new Array();
+		var disc_move = new Array();
+
+		function window_onload()
+		{
+			tower[0] = document.getElementById("tower0");
+			tower[1] = document.getElementById("tower1");
+			tower[2] = document.getElementById("tower2");
+			initColors();
+			init();
+			document.getElementById("button_solve").focus();
+		}
+		function initColors()
+		{
+			// Rainbow
+			disc_color[0] = "red";
+			disc_color[1] = "orange";
+			disc_color[2] = "yellow";
+			disc_color[3] = "green";
+			disc_color[4] = "blue";
+			disc_color[5] = "indigo";
+			disc_color[6] = "violet";
+		}
+		function init()
+		{
+			discs_on_tower[0] = new Array(number_discs);
+			discs_on_tower[1] = new Array(0);
+			discs_on_tower[2] = new Array(0);
+
+			for (var i = 0; i < number_discs; i++) {
+				discs_on_tower[0][i] = i;
+			}
+
+			drawTowers();
+			drawDiscs();
+
+			document.getElementById("input_number_discs").value = number_discs;
+			document.getElementById("button_solve").disabled = false;
+		}
+		function setNumberOfDiscs()
+		{
+			stop_solving = true;
+			var n = parseInt(document.getElementById("input_number_discs").value);
+			if ((n <= 0) || (isNaN(n))) {
+				alert("The number of discs needs to be 1 or higher.\nPlease enter a correct number.");
+			} else {
+				number_discs = n;
+			}
+			init();
+		}
+		function submitOnEnter(evt)
+		{
+			evt = (evt) ? evt : event;
+			var charCode = (evt.which) ? evt.which : evt.keyCode;
+			if (charCode == 13) {
+				setNumberOfDiscs();
+			}
+		}
+		function drawTowers()
+		{
+			drawTower(0);
+			drawTower(1);
+			drawTower(2);
+		}
+		function drawDiscs()
+		{
+			drawDiscsOnTower(0);
+			drawDiscsOnTower(1);
+			drawDiscsOnTower(2);
+		}
+		function drawTower(tower_number)
+		{
+			var tower_object = tower[tower_number];
+			tower_object.innerHTML = "";
+
+			var bottom_line = document.createElement("div");
+			bottom_line.className = "bottomline";
+			tower_object.appendChild(bottom_line);
+
+			var middle_line = document.createElement("div");
+			middle_line.className = "middleline";
+			tower_object.appendChild(middle_line);
+		}
+		function drawDiscsOnTower(tower_number)
+		{
+			var tower_object = tower[tower_number];
+			var tower_width = parseInt(tower_object.offsetWidth);
+			var tower_height = parseInt(tower_object.offsetHeight) - 20;
+			var tower_bottom = parseInt(tower_object.offsetWidth);
+
+			var max_disc_width = 0.9 * tower_width;
+			var min_disc_width = 0.1 * tower_width;
+			var step_size = (max_disc_width - min_disc_width) / number_discs;
+
+			var disc_y_offset = 1;
+			if (/MSIE/.test(navigator.userAgent)) {
+				disc_y_offset = -1;
+			}
+
+			var disc_height = 20 - disc_y_offset;
+			if (number_discs * disc_height > tower_height) {
+				disc_height = (tower_height / number_discs) - disc_y_offset;
+			}
+
+			for (var i = 0; i < discs_on_tower[tower_number].length; i++) {
+				var disc_number = discs_on_tower[tower_number][i];
+				var disc_width = step_size * (number_discs - disc_number);
+
+				var disc_block = document.createElement("div");
+				disc_block.style.position = "absolute";
+				disc_block.style.left = (tower_width - disc_width)/2;
+				disc_block.style.bottom = 5 + (disc_height + disc_y_offset) * i;
+				disc_block.style.width = disc_width;
+				disc_block.style.height = disc_height;
+				disc_block.style.backgroundColor = disc_color[disc_number % 7];
+				disc_block.style.border = "1px solid black";
+				tower_object.appendChild(disc_block);
+			}
+		}
+		function solve()
+		{
+			if (discs_on_tower[0].length > 0) {
+				stop_solving = false;
+				document.getElementById("button_solve").disabled = true;
+				disc_move = new Array();
+				moveDiscs(number_discs, 0, 2, 1);
+				disc_move.reverse();
+				executeOneMove();
+			}
+		}
+		function moveDiscs(n, t1, t2, t3)
+		{
+			// Cannot perform the moves directly since Javascript lacks a proper sleep function.
+			// Also setTimeout() does not work well with recursion. The solution is to first 
+			// calculate all moves and put then in a list, then execute them one by one using
+			// setTimeout(). Please let me know if there is a better (and simpler) solution!
+			if (n == 1) {
+				disc_move.push(new Function("moveOneDisc("+t1+", "+t2+");"));
+			} else {
+				moveDiscs(n-1, t1, t3, t2);
+				disc_move.push(new Function("moveOneDisc("+t1+", "+t2+");"));
+				moveDiscs(n-1, t3, t2, t1);
+			}
+		}
+		function moveOneDisc(fromTower, toTower)
+		{
+			discs_on_tower[toTower].push(discs_on_tower[fromTower].pop());
+			drawTowers();
+			drawDiscs();
+		}
+		function executeOneMove()
+		{
+			if (disc_move.length > 0 && !stop_solving) {
+				// Execute a function pointer
+				disc_move.pop()();
+				setTimeout("executeOneMove();", delay_between_moves);
+			} else {
+				document.getElementById("button_solve").disabled = false;
+			}
+		}
+	</script>
+</head>
+
+<body onLoad="window_onload();">
+	<div id="header">
+		<h1>Tower of Hanoi</h1>
+		<label for="number_discs">Number of discs:</label>
+		<input type="text" class="small" id="input_number_discs" onkeypress="submitOnEnter(event);"/>
+		<button id="button_dim" class="small" onclick="setNumberOfDiscs();">OK</button>
+	</div>
+
+	<div class="tower" id="tower0"></div>
+	<div class="tower" id="tower1"></div>
+	<div class="tower" id="tower2"></div>
+
+	<div id="footer">
+		<button onclick="solve();" id="button_solve">Solve!</button>
+
+		<br/><br/>
+
+		<hr width="100%" noshade size="3"/>
+
+		<small>Written by Carl Fredrik Abelson in the afternoon of September 29, 2009.</small>
+	</div>
+</body>
+
+</html>
